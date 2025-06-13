@@ -1,16 +1,25 @@
 import java.util.Scanner;
+import java.util.HashSet;
 
 class Member {
     String name;
-    int score;
+    int totalScore;
+    int evaluationCount;
 
     public Member(String name) {
         this.name = name;
-        this.score = 0;
+        this.totalScore = 0;
+        this.evaluationCount = 0;
     }
 
     public void addScore(int score) {
-        this.score += score;
+        this.totalScore += score;
+        this.evaluationCount++;
+    }
+
+    public double getAverage() {
+        if (evaluationCount == 0) return 0;
+        return (double) totalScore / evaluationCount;
     }
 }
 
@@ -20,7 +29,7 @@ public class Main {
 
         System.out.print("팀원 수를 입력하세요: ");
         int memberCount = scanner.nextInt();
-        scanner.nextLine(); // 엔터 처리
+        scanner.nextLine();
 
         Member[] members = new Member[memberCount];
 
@@ -30,29 +39,66 @@ public class Main {
             members[i] = new Member(name);
         }
 
-        System.out.print("평가자 이름을 입력하세요: ");
-        String evaluator = scanner.nextLine();
+        System.out.print("평가자 수를 입력하세요: ");
+        int evaluatorCount = scanner.nextInt();
+        scanner.nextLine();
 
-        for (int i = 0; i < memberCount; i++) {
-            if (members[i].name.equals(evaluator)) {
-                continue; // 본인 제외
-            }
+        HashSet<String> evaluatedSet = new HashSet<>();
 
-            int score;
-            while (true) {
-                System.out.print(members[i].name + "의 점수 (1~5): ");
-                score = scanner.nextInt();
-                if (score >= 1 && score <= 5) {
+        for (int i = 0; i < evaluatorCount; i++) {
+            System.out.print("\n" + (i + 1) + "번째 평가자 이름 입력: ");
+            String evaluator = scanner.nextLine();
+
+            // boolean 없이 검사: for문 다 돌면서 찾기
+            int foundIndex = -1;
+            for (int j = 0; j < memberCount; j++) {
+                if (members[j].name.equals(evaluator)) {
+                    foundIndex = j;
                     break;
                 }
-                System.out.println("1~5 사이 숫자 입력하세요!");
             }
-            members[i].addScore(score);
+
+            if (foundIndex == -1) {
+                System.out.println("팀원 목록에 없는 이름입니다. 이 평가자는 스킵합니다.");
+                continue;
+            }
+
+            if (evaluatedSet.contains(evaluator)) {
+                System.out.println("이미 평가를 완료한 사람입니다. 중복 평가 불가.");
+                continue;
+            }
+
+            for (int j = 0; j < memberCount; j++) {
+                if (members[j].name.equals(evaluator)) continue;
+
+                int score;
+                while (true) {
+                    System.out.print(members[j].name + "의 점수 (1~5): ");
+                    score = scanner.nextInt();
+                    if (score >= 1 && score <= 5) break;
+                    System.out.println("1~5 사이 숫자 입력하세요!");
+                }
+                members[j].addScore(score);
+            }
+            scanner.nextLine();
+            evaluatedSet.add(evaluator);
         }
 
-        System.out.println("\n--- 평가 결과 ---");
+        System.out.println("\n--- 최종 평가 결과 ---");
         for (int i = 0; i < memberCount; i++) {
-            System.out.println(members[i].name + ": " + members[i].score + "점");
+            System.out.printf("%s: 총점 %d, 평균 %.2f점\n", members[i].name, members[i].totalScore, members[i].getAverage());
+        }
+
+        System.out.println("\n--- 경고: 총점 5점 미만인 사람 ---");
+        int warningCount = 0;
+        for (int i = 0; i < memberCount; i++) {
+            if (members[i].totalScore < 5) {
+                System.out.println(members[i].name + ": 총점 " + members[i].totalScore + "점");
+                warningCount++;
+            }
+        }
+        if (warningCount == 0) {
+            System.out.println("5점 미만인 사람이 없습니다.");
         }
     }
 }
