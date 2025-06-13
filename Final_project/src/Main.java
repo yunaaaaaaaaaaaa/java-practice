@@ -1,5 +1,4 @@
 import java.util.Scanner;
-import java.util.HashSet;
 
 class Member {
     String name;
@@ -43,13 +42,14 @@ public class Main {
         int evaluatorCount = scanner.nextInt();
         scanner.nextLine();
 
-        HashSet<String> evaluatedSet = new HashSet<>();
+        String[] evaluatedNames = new String[evaluatorCount];
+        int evaluatedIndex = 0;
 
         for (int i = 0; i < evaluatorCount; i++) {
             System.out.print("\n" + (i + 1) + "번째 평가자 이름 입력: ");
             String evaluator = scanner.nextLine();
 
-            // boolean 없이 검사: for문 다 돌면서 찾기
+            // 팀원 목록에 있는지 검사
             int foundIndex = -1;
             for (int j = 0; j < memberCount; j++) {
                 if (members[j].name.equals(evaluator)) {
@@ -59,29 +59,43 @@ public class Main {
             }
 
             if (foundIndex == -1) {
-                System.out.println("팀원 목록에 없는 이름입니다. 이 평가자는 스킵합니다.");
+                System.out.println("팀원 목록에 없는 이름입니다. 스킵합니다.");
                 continue;
             }
 
-            if (evaluatedSet.contains(evaluator)) {
-                System.out.println("이미 평가를 완료한 사람입니다. 중복 평가 불가.");
+            // 중복 검사 (배열로만 검사)
+            int duplicateCheck = 0;
+            for (int j = 0; j < evaluatedIndex; j++) {
+                if (evaluatedNames[j].equals(evaluator)) {
+                    duplicateCheck = 1;
+                    break;
+                }
+            }
+            if (duplicateCheck == 1) {
+                System.out.println("이미 평가한 사람입니다. 스킵합니다.");
                 continue;
             }
 
+            // 평가 진행
             for (int j = 0; j < memberCount; j++) {
-                if (members[j].name.equals(evaluator)) continue;
+                if (members[j].name.equals(evaluator)) {
+                    continue;
+                }
 
-                int score;
+                int score = 0;
                 while (true) {
                     System.out.print(members[j].name + "의 점수 (1~5): ");
                     score = scanner.nextInt();
-                    if (score >= 1 && score <= 5) break;
+                    if (score >= 1 && score <= 5) {
+                        break;
+                    }
                     System.out.println("1~5 사이 숫자 입력하세요!");
                 }
                 members[j].addScore(score);
             }
             scanner.nextLine();
-            evaluatedSet.add(evaluator);
+            evaluatedNames[evaluatedIndex] = evaluator;
+            evaluatedIndex++;
         }
 
         System.out.println("\n--- 최종 평가 결과 ---");
